@@ -8,6 +8,19 @@ import (
 	"golang.org/x/oauth2"
 )
 
+// ValidateToken validates and refreshes the given token if needed.
+func ValidateToken(config *oauth2.Config, token *oauth2.Token) (*oauth2.Token, error) {
+	if token.Valid() {
+		return token, nil
+	}
+	tokenSource := config.TokenSource(oauth2.NoContext, token)
+	newToken, err := tokenSource.Token()
+	if err != nil {
+		return token, fmt.Errorf("error refreshing token: %v", err)
+	}
+	return newToken, nil
+}
+
 // TokenToFile saves a token to a local json file.
 func TokenToFile(path string, token *oauth2.Token) error {
 	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)

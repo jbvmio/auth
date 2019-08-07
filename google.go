@@ -137,16 +137,3 @@ func getUserDataFromGoogle(token *oauth2.Token) ([]byte, error) {
 	}
 	return contents, nil
 }
-
-// ValidateToken validates and refreshes the given token if needed.
-func ValidateToken(config *oauth2.Config, token *oauth2.Token) *oauth2.Token {
-	if token.Valid() {
-		return token
-	}
-	tokenSource := config.TokenSource(oauth2.NoContext, token)
-	newToken, err := tokenSource.Token()
-	if err != nil {
-		log.Fatalf("error refreshing token: %v\n", err)
-	}
-	return newToken
-}
