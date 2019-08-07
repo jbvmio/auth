@@ -48,7 +48,7 @@ func NewGoogleLogin(config *oauth2.Config) *GoogleLogin {
 	}
 }
 
-// StartAuth starts the Google OAuth2 Process.
+// StartAuth starts the Google OAuth2 Process using a local webserver to handle the callback.
 // If a path is given, it will save the returned token to that path, otherwise the token will be printed.
 func (g *GoogleLogin) StartAuth(saveTokenPath ...string) {
 	token := g.getTokenFromWeb(g.oathConfig)
@@ -71,7 +71,7 @@ func (g *GoogleLogin) getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 	go g.startHTTP(server)
 
 	authURL := config.AuthCodeURL(g.genState, oauth2.AccessTypeOffline)
-	fmt.Printf("Go to the following link in your browser and follow the prompts:\n%v\n", authURL)
+	fmt.Printf("Go to the following link in your browser and follow the prompts:\n%v\n\n", authURL)
 	g.wg.Wait()
 
 	if g.errd {
@@ -138,7 +138,8 @@ func getUserDataFromGoogle(token *oauth2.Token) ([]byte, error) {
 	return contents, nil
 }
 
-func validateToken(config *oauth2.Config, token *oauth2.Token) *oauth2.Token {
+// ValidateToken validates and refreshes the given token if needed.
+func ValidateToken(config *oauth2.Config, token *oauth2.Token) *oauth2.Token {
 	if token.Valid() {
 		return token
 	}
