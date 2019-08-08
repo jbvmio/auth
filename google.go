@@ -56,6 +56,10 @@ func (g *GoogleLogin) StartAuth(saveTokenPath ...string) {
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Println("INITIAL TOKEN:")
+	fmt.Printf("%+v\n\n", token)
+
 	multipleSave(token, saveTokenPath...)
 	fmt.Printf("Generated Token:\n%s\n", j)
 }
@@ -84,8 +88,7 @@ func (g *GoogleLogin) getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 
 	server.Shutdown(context.Background())
 
-	opts := oauth2.SetAuthURLParam(`grant_type`, `refresh_token`)
-	tok, err := config.Exchange(context.TODO(), g.authCode, opts)
+	tok, err := config.Exchange(context.TODO(), g.authCode)
 	if err != nil {
 		log.Fatalf("Unable to retrieve token from web: %v", err)
 	}
