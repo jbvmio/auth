@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -19,6 +20,17 @@ func ValidateToken(config *oauth2.Config, token *oauth2.Token) (*oauth2.Token, e
 		return token, fmt.Errorf("error refreshing token: %v", err)
 	}
 	return newToken, nil
+}
+
+// NewToken requests a new token using an existing refresh token.
+func NewToken(config *oauth2.Config, token *oauth2.Token) (*oauth2.Token, error) {
+	if token.RefreshToken == "" {
+		return nil, fmt.Errorf("token provided is not a refresh token")
+	}
+	var opts []oauth2.AuthCodeOption
+	opts = append(opts, oauth2.SetAuthURLParam(`grant_type`, `refresh_token`))
+	opts = append(opts, oauth2.SetAuthURLParam(`refresh_token`, token.RefreshToken))
+	return config.Exchange(context.TODO(), "", opts...)
 }
 
 // TokenToFile saves a token to a local json file.
