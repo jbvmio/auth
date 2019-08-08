@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"sync"
 
 	"golang.org/x/oauth2"
@@ -17,8 +18,6 @@ import (
 const (
 	oauthGoogleUserURL  = "https://www.googleapis.com/oauth2/v2/userinfo?access_token="
 	oauthGoogleTokenURL = "https://www.googleapis.com/oauth2/v3/tokeninfo?access_token="
-	defaultCBAddress    = ":31080"
-	defaultCBURI        = "/auth/google/callback"
 )
 
 // ExampleGoogleScopes .
@@ -29,8 +28,8 @@ var ExampleGoogleScopes = []string{
 // GoogleLogin .
 type GoogleLogin struct {
 	wg              sync.WaitGroup
-	CallbackAddress string
-	CallbackURI     string
+	callbackAddress string
+	callbackURI     string
 	genState        string
 	authCode        string
 	errd            bool
@@ -40,9 +39,13 @@ type GoogleLogin struct {
 
 // NewGoogleLogin return a new GoogleLogin with defaults using the provided oauth2 Config.
 func NewGoogleLogin(config *oauth2.Config) *GoogleLogin {
+	u, err := url.Parse(config.RedirectURL)
+	if err != nil {
+		panic(err)
+	}
 	return &GoogleLogin{
-		CallbackAddress: defaultCBAddress,
-		CallbackURI:     defaultCBURI,
+		callbackAddress: u.Host,
+		callbackURI:     u.RequestURI(),
 		oathConfig:      config,
 		Scopes:          ExampleGoogleScopes,
 	}
@@ -65,7 +68,7 @@ func (g *GoogleLogin) StartAuth(saveTokenPath ...string) {
 // https://developers.google.com/identity/toolkit/reference/securetoken/rest/v1/token
 func (g *GoogleLogin) getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 	server := &http.Server{
-		Addr:    g.CallbackAddress,
+		Addr:    g.callbackAddress,
 		Handler: g.oathHandler(),
 	}
 	g.genState = generateState()
@@ -106,7 +109,7 @@ func (g *GoogleLogin) startHTTP(server *http.Server) {
 
 func (g *GoogleLogin) oathHandler() http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc(g.CallbackURI, g.oauthGoogleCallback)
+	mux.HandleFunc(g.callbackURI, g.oauthGoogleCallback)
 	return mux
 }
 
