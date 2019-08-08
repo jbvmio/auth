@@ -62,6 +62,7 @@ func (g *GoogleLogin) StartAuth(saveTokenPath ...string) {
 }
 
 // GetTokenFromWeb requests a token from the web, then returns the retrieved token.
+// https://developers.google.com/identity/toolkit/reference/securetoken/rest/v1/token
 func (g *GoogleLogin) getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 	server := &http.Server{
 		Addr:    g.CallbackAddress,
