@@ -84,7 +84,8 @@ func (g *GoogleLogin) getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 
 	server.Shutdown(context.Background())
 
-	tok, err := config.Exchange(context.TODO(), g.authCode)
+	opts := oauth2.SetAuthURLParam(`grant_type`, `refresh_token`)
+	tok, err := config.Exchange(context.TODO(), g.authCode, opts)
 	if err != nil {
 		log.Fatalf("Unable to retrieve token from web: %v", err)
 	}
